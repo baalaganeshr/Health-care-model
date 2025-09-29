@@ -1,0 +1,14 @@
+.venv
+**/__pycache__/
+*.py[cod]
+*.ipynb_checkpoints
+*.log
+dist/
+build/
+.cache/
+.artifacts_tmp/
+.archive/
+*.zip
+notebooks/
+.git
+.gitignore

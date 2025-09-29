@@ -1,34 +1,22 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1.7
 
-FROM python:3.11-slim AS base
+FROM python:3.11-slim AS builder
+WORKDIR /wheels
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential gcc && rm -rf /var/lib/apt/lists/*
+COPY requirements.txt /req/requirements.txt
+RUN pip install --upgrade pip wheel && pip wheel -r /req/requirements.txt
 
-FROM base AS builder
-ENV PIP_NO_CACHE_DIR=1
-WORKDIR /tmp/app
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends build-essential gcc python3-dev \
-    && rm -rf /var/lib/apt/lists/*
-COPY requirements.txt ./
-RUN pip install --upgrade pip setuptools wheel \
-    && pip wheel --wheel-dir /wheels -r requirements.txt
-
-FROM base AS runtime
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1
+FROM python:3.11-slim AS runtime
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 WORKDIR /app
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends bash libgomp1 \
-    && rm -rf /var/lib/apt/lists/* \
-    && groupadd --gid 1000 appuser \
-    && useradd --uid 1000 --gid appuser --shell /bin/bash --create-home appuser
+
+# Create non-root user
+RUN useradd -m -u 1000 appuser
 COPY --from=builder /wheels /wheels
-RUN pip install --no-cache-dir /wheels/* \
-    && rm -rf /wheels
-COPY . .
-RUN chmod +x scripts/entrypoint.sh || true
-RUN chown -R appuser:appuser /app
+RUN pip install --no-cache-dir /wheels/*
+COPY . /app
+RUN mkdir -p /app/data /app/artifacts /app/models && chown -R appuser:appuser /app
 USER appuser
-ENV PATH="/home/appuser/.local/bin:$PATH"
-ENTRYPOINT ["/bin/bash", "/app/scripts/entrypoint.sh"]
-CMD ["python", "run.py", "--help"]
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD python -c "import torch, pandas, sklearn; print('ok')" || exit 1
+ENTRYPOINT ["bash","scripts/entrypoint.sh"]
+CMD ["python","run.py","--help"]

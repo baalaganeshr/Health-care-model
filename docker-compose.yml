@@ -3,52 +3,42 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: heart-disease:latest
-    env_file:
-      - .env
+    image: healthcare-app:cpu
+    entrypoint: ["bash","scripts/entrypoint.sh"]
+    working_dir: /app
     environment:
-      PYTHONUNBUFFERED: "1"
+      - PYTHONUNBUFFERED=1
+      - CONFIG=${CONFIG:-configs/default.yaml}
     volumes:
-      - .:/app
+      - ./:/app
       - ./data:/app/data
       - ./artifacts:/app/artifacts
       - ./models:/app/models
-    entrypoint: ["bash", "scripts/entrypoint.sh"]
-    command: ["python", "run.py", "--help"]
     healthcheck:
-      test: ["CMD", "python", "-c", "import numpy, torch; print('ok')"]
+      test: ["CMD-SHELL","python -c \"import torch, pandas, sklearn; print('ok')\""]
       interval: 30s
-      timeout: 10s
+      timeout: 5s
       retries: 3
-      start_period: 30s
 
   app-gpu:
+    profiles: ["gpu"]
     build:
       context: .
       dockerfile: Dockerfile.cuda
-    image: heart-disease:cuda
-    profiles: ["gpu"]
-    env_file:
-      - .env
+    image: healthcare-app:gpu
+    entrypoint: ["bash","scripts/entrypoint.sh"]
+    working_dir: /app
     environment:
-      PYTHONUNBUFFERED: "1"
-      NVIDIA_VISIBLE_DEVICES: all
-    volumes:
-      - .:/app
-      - ./data:/app/data
-      - ./artifacts:/app/artifacts
-      - ./models:/app/models
-    entrypoint: ["bash", "scripts/entrypoint.sh"]
-    command: ["python", "run.py", "--help"]
-    healthcheck:
-      test: ["CMD", "python", "-c", "import numpy, torch; print('ok')"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
+      - NVIDIA_VISIBLE_DEVICES=all
+      - CONFIG=${CONFIG:-configs/default.yaml}
     deploy:
       resources:
         reservations:
           devices:
             - capabilities: ["gpu"]
     runtime: nvidia
+    volumes:
+      - ./:/app
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+      - ./models:/app/models

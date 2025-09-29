@@ -61,6 +61,32 @@ Or use docker-compose:
 docker-compose up
 ```
 
+## Docker Support
+
+### Quick Start with Docker
+```powershell
+# Copy environment template
+Copy-Item .env.example .env
+
+# Build and run CPU version
+docker compose build
+docker compose run --rm app python run.py --mode train --config configs/default.yaml
+docker compose run --rm app python run.py --mode eval --config configs/default.yaml
+
+# GPU version (requires NVIDIA Docker toolkit)
+docker compose --profile gpu build app-gpu
+docker compose --profile gpu run --rm app-gpu python3.11 run.py --mode train --config configs/default.yaml
+```
+
+### Makefile Commands
+```powershell
+make build     # Build CPU image
+make build-gpu # Build GPU image  
+make train     # Run training
+make eval      # Run evaluation
+make shell     # Interactive shell
+```
+
 ## Results & Reporting
 - Metrics JSON: `artifacts/metrics.json`
 - Evaluation metrics: `artifacts/metrics_eval.json`

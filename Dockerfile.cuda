@@ -1,48 +1,20 @@
-# syntax=docker/dockerfile:1
+﻿# syntax=docker/dockerfile:1.7
 
 FROM nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04 AS base
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends python3.11 python3.11-venv python3-pip build-essential gcc && rm -rf /var/lib/apt/lists/*
+WORKDIR /wheels
+COPY requirements.txt /req/requirements.txt
+RUN python3.11 -m pip install --upgrade pip wheel && python3.11 -m pip wheel -r /req/requirements.txt && python3.11 -m pip wheel torch --index-url https://download.pytorch.org/whl/cu121
 
-FROM base AS builder
-ENV DEBIAN_FRONTEND=noninteractive \
-    PIP_NO_CACHE_DIR=1
-WORKDIR /tmp/app
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends software-properties-common ca-certificates curl gpg-agent \
-    && add-apt-repository ppa:deadsnakes/ppa \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends python3.11 python3.11-distutils python3.11-venv python3.11-dev build-essential git \
-    && rm -rf /var/lib/apt/lists/*
-RUN curl -sS https://bootstrap.pypa.io/get-pip.py -o get-pip.py \
-    && python3.11 get-pip.py \
-    && rm get-pip.py
-COPY requirements.txt ./
-RUN python3.11 -m pip install --upgrade pip setuptools wheel
-RUN sed '/^torch/Id;/^torchvision/Id;/^torchaudio/Id' requirements.txt > requirements-base.txt
-RUN python3.11 -m pip wheel --wheel-dir /wheels -r requirements-base.txt
-RUN python3.11 -m pip wheel --wheel-dir /wheels torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-
-FROM base AS runtime
-ENV DEBIAN_FRONTEND=noninteractive \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1
+FROM nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 WORKDIR /app
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends python3.11 python3.11-distutils python3.11-venv libgomp1 bash \
-    && rm -rf /var/lib/apt/lists/* \
-    && curl -sS https://bootstrap.pypa.io/get-pip.py -o get-pip.py \
-    && python3.11 get-pip.py \
-    && rm get-pip.py \
-    && groupadd --gid 1000 appuser \
-    && useradd --uid 1000 --gid appuser --shell /bin/bash --create-home appuser
-COPY --from=builder /wheels /wheels
-COPY requirements.txt ./
-RUN python3.11 -m pip install --no-cache-dir /wheels/* \
-    && rm -rf /wheels
-COPY . .
-RUN chmod +x scripts/entrypoint.sh || true \
-    && chown -R appuser:appuser /app
+RUN useradd -m -u 1000 appuser
+COPY --from=base /wheels /wheels
+RUN python3.11 -m pip install --no-cache-dir /wheels/*
+COPY . /app
+RUN mkdir -p /app/data /app/artifacts /app/models && chown -R appuser:appuser /app
 USER appuser
-ENV PATH="/home/appuser/.local/bin:$PATH"
-ENTRYPOINT ["/bin/bash", "/app/scripts/entrypoint.sh"]
-CMD ["python3.11", "run.py", "--help"]
+ENTRYPOINT ["bash","scripts/entrypoint.sh"]
+CMD ["python3.11","run.py","--help"]
