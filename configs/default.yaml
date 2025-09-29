@@ -1,0 +1,19 @@
+seed: 42
+data:
+  csv_path: data/heart.csv
+  target: target
+  split:
+    test_size: 0.3
+    stratify: true
+    random_state: 42
+features:
+  pca: true
+  pca_components: 0.95
+train:
+  baseline: true
+  dnn:
+    epochs: 30
+    batch_size: 64
+    lr: 0.001
+    hidden_sizes: [64, 32]
+    dropout: 0.2

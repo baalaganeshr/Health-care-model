@@ -1,0 +1,54 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: heart-disease:latest
+    env_file:
+      - .env
+    environment:
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - .:/app
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+      - ./models:/app/models
+    entrypoint: ["bash", "scripts/entrypoint.sh"]
+    command: ["python", "run.py", "--help"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import numpy, torch; print('ok')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  app-gpu:
+    build:
+      context: .
+      dockerfile: Dockerfile.cuda
+    image: heart-disease:cuda
+    profiles: ["gpu"]
+    env_file:
+      - .env
+    environment:
+      PYTHONUNBUFFERED: "1"
+      NVIDIA_VISIBLE_DEVICES: all
+    volumes:
+      - .:/app
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+      - ./models:/app/models
+    entrypoint: ["bash", "scripts/entrypoint.sh"]
+    command: ["python", "run.py", "--help"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import numpy, torch; print('ok')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: ["gpu"]
+    runtime: nvidia
