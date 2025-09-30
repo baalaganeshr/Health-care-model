@@ -8,3 +8,5 @@ torchaudio
 tqdm
 pyyaml
 pytest
+openpyxl
+tabulate

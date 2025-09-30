@@ -1,0 +1,6 @@
+sim_energy_mJ_nodes,sim_energy_mJ_cleveland,sim_energy_mJ_kaggle,sim_throughput_pct_nodes,sim_throughput_pct_cleveland,sim_throughput_pct_kaggle,sim_pdr_pct_nodes,sim_pdr_pct_cleveland,sim_pdr_pct_kaggle
+50,42.63259178132088,,50,10.0,,50,10.0,
+100,55.62712584323748,,100,10.0,,100,10.0,
+150,67.82037161647452,,150,10.0,,150,10.0,
+200,80.25827041135187,,200,10.0,,200,10.0,
+250,99.29257267608591,,250,10.0,,250,10.0,

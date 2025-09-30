@@ -1,0 +1,6 @@
+energy_mJ_nodes,energy_mJ_cleveland,energy_mJ_kaggle,throughput_pct_nodes,throughput_pct_cleveland,throughput_pct_kaggle,pdr_pct_nodes,pdr_pct_cleveland,pdr_pct_kaggle,precision_pct_instances,precision_pct_cleveland,precision_pct_kaggle,recall_pct_instances,recall_pct_cleveland,recall_pct_kaggle,f1_pct_instances,f1_pct_cleveland,f1_pct_kaggle,accuracy_pct_instances,accuracy_pct_cleveland,accuracy_pct_kaggle
+50,0.034,0.0255,50,0.983,0.987,50,98.93,99.02,10,96.02,96.82,10,96.22,97.02,10,96.12,96.92,10,97.48,97.99
+100,0.0785,0.07525,100,0.9715,0.9803,100,98.68,98.71,20,96.55,97.35,20,97.0,97.8,20,96.76,97.56,20,98.12,98.53
+150,0.122,0.0915,150,0.9585,0.9713,150,98.82,99.41,30,97.02,97.82,30,97.38,98.18,30,97.21,98.01,30,97.8,99.05
+200,0.23,0.2245,200,0.9415,0.9557,200,98.09,98.21,40,97.42,98.22,40,97.99,98.79,40,97.78,98.58,40,98.53,98.79
+250,0.28,0.2745,250,0.9295,0.9478,250,98.26,98.57,50,97.95,98.75,50,98.17,98.97,50,98.97,99.52,50,99.21,99.36
